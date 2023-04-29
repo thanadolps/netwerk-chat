@@ -6,7 +6,10 @@ class cmd():
     name = 'name'
     create_group = 'create_group'
     join_group = 'join_group'
+    leave_group = 'leave_group'
     dm = 'dm'
+    request = 'request'
+    response = 'response'
 
 class var():
     HOST = '127.0.0.1'  # Standard loopback interface address (localhost)

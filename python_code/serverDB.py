@@ -31,8 +31,8 @@ class DB():
         self.users[user_id].remove(self.groups[group_name])
 
     def delete_user(self,user_id):
-        for group_name in self.users[user_id].group:
-            self.leave_group(user_id,group_name)
+        for group in self.users[user_id].groups:
+            self.leave_group(user_id,group.name)
         self.users.pop(user_id)
         
     def delete_group(self,group_name):
@@ -80,13 +80,13 @@ class User:
     def __init__(self,id,name):
         self.id = id
         self.name = name
-        self.group = []
+        self.groups = []
     
     def add(self,u):
-        self.group.append(u)
+        self.groups.append(u)
 
     def remove(self,u):
-        self.group.remove(u)
+        self.groups.remove(u)
 
 class Chat:
     def __init__(self,name):

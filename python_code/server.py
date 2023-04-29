@@ -15,7 +15,12 @@ sio = socketio.Server(
 app = socketio.WSGIApp(sio)
 import eventlet
 
-
+def gen_server_msg(msg:str):
+    return {
+            var.sender : var.server_name,
+            var.group_name : var.server_name,
+            var.data : msg
+        }
 
 def log(*arg,**kwarg):
     print(*arg,**kwarg)
@@ -29,6 +34,9 @@ def send_to_all(msg):
     for user in db.users.values():
         rid = user.id
         send(rid,msg)
+def response(sid,msg):
+    sio.emit(cmd.response,msg, room=sid)
+    log(sid,msg)
 def send_error(sid,msg):
     if type(msg)!=dict:
         msg = {
@@ -40,6 +48,7 @@ def send_error(sid,msg):
     log(sid,msg)
 def send_group_name_error(sid):
     send_error(sid, 'group name error')
+    
 
 @sio.on('connect')
 def connect(sid, environ, auth):
@@ -69,6 +78,8 @@ def send_message(sid, data):
     if group_name not in db.groups_name:
         send_group_name_error(sid)
         return
+    if sid not in db.groups[group_name].members_id:
+        db.join_group(sid, group_name)
     msg[var.group_name] = group_name
     send_to_group(group_name,msg)
 
@@ -81,17 +92,44 @@ def send_dm(sid, data):
         }
     send(data[var.reciever],msg)
     
+@sio.on(cmd.request)
+def request(sid, data):
+    if data[var.data] == var.group_name: request = db.groups_name
+    else:return
+    msg = gen_server_msg(request)
+    response(sid,msg)
+
+@sio.on(cmd.join_group)
+def join_group(sid, data):
+    group_name = data[var.group_name]
+    if db.join_group(sid, group_name):
+        msg = gen_server_msg(f"{db.users[sid].name} joined chat {group_name}")
+        msg[var.group_name] = group_name
+        send_to_group(group_name, msg)
+        msg[var.data]=cmd.join_group
+        response(sid,msg)
+    else:
+        send_group_name_error(sid)
+        
+@sio.on(cmd.leave_group)
+def leave_group(sid, data):
+    group_name = data[var.group_name]
+    if db.leave_group(sid, group_name):
+        msg = gen_server_msg(f"{db.users[sid].name} leaved chat {group_name}")
+        msg[var.group_name] = group_name
+        send_to_group(group_name, msg)
+        msg[var.data]=cmd.leave_group
+        response(sid,msg)
+    else:
+        send_group_name_error(sid)
+    
 @sio.on(cmd.name)
 def change_name(sid, new_name):
-    old_name = db.users[sid]
+    old_name = db.users[sid].name
     if not db.rename_user(sid, new_name):
         send_error(sid,'cant change name (name may dupe)')
         return
-    msg = {
-        var.sender : var.server_name,
-        var.group_name : var.server_name,
-        var.data : f'change name from {old_name} to {new_name}'
-        }
+    msg = gen_server_msg(f'change name from {old_name} to {new_name}')
     send_to_all(msg)
 
 
@@ -99,11 +137,7 @@ def change_name(sid, new_name):
 def create_group(sid, group_name):
     if db.create_groups(group_name):
         u_name = db.users[sid].name
-        msg = {
-            var.sender : var.server_name,
-            var.group_name : var.server_name,
-            var.data : f'group {group_name} has been created by {u_name}'
-            }
+        msg = gen_server_msg(f'group {group_name} has been created by {u_name}')
         send_to_all(msg)
     else:
         send_group_name_error(sid)
