@@ -1,47 +1,114 @@
 from aiohttp import web
 import socketio
 
-PORT = 5069
+from Utils import cmd,var
+from serverDB import DB,Chat,User
 
-## creates a new Async Socket IO Server
-sio = socketio.AsyncServer(cors_allowed_origins='*')
-## Creates a new Aiohttp Web Application
-app = web.Application()
-# Binds our Socket.IO server to our Web App
-## instance
-sio.attach(app)
+db = DB()
 
-## we can define aiohttp endpoints just as we normally
-## would with no change
-# async def index(request):
-#     with open('index.html') as f:
-#         return web.Response(text=f.read(), content_type='text/html')
+PORT = var.PORT
+
+sio = socketio.Server(
+    cors_allowed_origins='*',
+    logger=True,
+)
+app = socketio.WSGIApp(sio)
+import eventlet
+
+
+
+def log(*arg,**kwarg):
+    print(*arg,**kwarg)
+def send(sid,msg):
+    sio.emit(cmd.message,msg, room=sid)
+    log(sid,msg)
+def send_to_group(group_name,msg):
+    for rid in db.groups[group_name].members_id:
+        send(rid,msg)
+def send_to_all(msg):
+    for user in db.users.values():
+        rid = user.id
+        send(rid,msg)
+def send_error(sid,msg):
+    if type(msg)!=dict:
+        msg = {
+            var.sender : var.server_name,
+            var.group_name : var.server_name,
+            var.data : msg
+            }
+    sio.emit(cmd.error,msg, room=sid)
+    log(sid,msg)
+def send_group_name_error(sid):
+    send_error(sid, 'group name error')
 
 @sio.on('connect')
-def connect(sid, environ):
+def connect(sid, environ, auth):
+    db.create_user(sid, sid)
     print('Connected:', sid)
 
-## If we wanted to create a new websocket endpoint,
-## use this decorator, passing in the name of the
-## event we wish to listen out for
-@sio.on('message')
-async def print_message(sid, message):
-    ## When we receive a new event of type
-    ## 'message' through a socket.io connection
-    ## we print the socket ID and the message
-    print("Socket ID: " , sid)
-    print(message)
-    print(type(message))
+@sio.on('disconnect')
+def connect(sid):
+    db.delete_user(sid)
+    print('Disconnected:', sid)
 
-@sio.event
-async def chat_message(sid, data):
-    print("message ", data)
+@sio.on(cmd.message)
+def send_message(sid, data):
+    msg = {
+        var.sender : db.get_user(sid).name,
+        }
+    if type(data) != dict :
+        group_name = 'default'
+        msg[var.data] = data
+    else:
+        if var.group_name not in data.keys():
+            group_name = 'default'
+        else:
+            group_name = data[var.group_name]
+        msg[var.data] = data[var.data]
+
+    if group_name not in db.groups_name:
+        send_group_name_error(sid)
+        return
+    msg[var.group_name] = group_name
+    send_to_group(group_name,msg)
+
+@sio.on(cmd.dm)
+def send_dm(sid, data):
+    msg = {
+        var.sender : db.get_user(sid).name,
+        var.group_name : var.dm,
+        var.data : data[var.data]
+        }
+    send(data[var.reciever],msg)
+    
+@sio.on(cmd.name)
+def change_name(sid, new_name):
+    old_name = db.users[sid]
+    if not db.rename_user(sid, new_name):
+        send_error(sid,'cant change name (name may dupe)')
+        return
+    msg = {
+        var.sender : var.server_name,
+        var.group_name : var.server_name,
+        var.data : f'change name from {old_name} to {new_name}'
+        }
+    send_to_all(msg)
 
 
-## We bind our aiohttp endpoint to our app
-## router
-# app.router.add_get('/', index)
+@sio.on(cmd.create_group)
+def create_group(sid, group_name):
+    if db.create_groups(group_name):
+        u_name = db.users[sid].name
+        msg = {
+            var.sender : var.server_name,
+            var.group_name : var.server_name,
+            var.data : f'group {group_name} has been created by {u_name}'
+            }
+        send_to_all(msg)
+    else:
+        send_group_name_error(sid)
+    
 
-## We kick off our server
 if __name__ == '__main__':
-    web.run_app(app, port = PORT)
+    eventlet.wsgi.server(eventlet.listen(('', PORT)), app)
+    # web.run_app(app, port = PORT)

@@ -1,19 +1,48 @@
 import asyncio
 import socketio
 
-sio = socketio.AsyncClient()
+from Utils import cmd,var
+
+sio = socketio.AsyncClient(
+    logger=True,
+    )
 
 @sio.event
 async def connect():
     print('connection established')
-    await sio.emit('message', 'hello from python')
-    await sio.emit('message', {'send': 'dict'})
+    await sio.emit(cmd.message, 'hello from python')
+    
+    msg = {
+        var.data : 'use dict to send to default group'
+        }
+    await sio.emit(cmd.message, msg)
+    msg = {
+        var.group_name : 'default',
+        var.data : 'rename and send',
+        }
+    await sio.emit(cmd.name, 'takeshi')
+    await sio.emit(cmd.message, msg)
+    msg = {
+        var.group_name : 'new group',
+        var.data : 'create group and send',
+        }
+    await sio.emit(cmd.create_group, 'new group')
+    await sio.emit(cmd.message, msg)
 
 @sio.event
-async def my_message(data):
-    print('message received with ', data)
-    await sio.emit('message', {'response': 'response from python'})
+async def message(data):
+    out = f'{data[var.sender]} (error) : {data[var.data]}'
+    print(out)
+@sio.on(cmd.message)
+async def display_msg(data):
+    out = f'{data[var.sender]} ({data[var.group_name]}) : {data[var.data]}'
+    print(out)
 
+@sio.on(cmd.error)
+async def display_error(data):
+    out = data[var.data]
+    print(out)
+    
 @sio.event
 async def disconnect():
     print('disconnected from server')
