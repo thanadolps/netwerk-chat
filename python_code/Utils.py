@@ -3,7 +3,8 @@ from enum import Enum, auto
 class cmd():
     message = 'message'
     error = 'error'
-    name = 'name'
+    change_user_name = 'change_user_name'
+    change_group_name = 'change_group_name'
     create_group = 'create_group'
     join_group = 'join_group'
     leave_group = 'leave_group'

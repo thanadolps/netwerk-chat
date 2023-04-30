@@ -16,11 +16,12 @@ def connect():
         var.data : 'use dict to send to default group'
         }
     sio.emit(cmd.message, msg)
+    msg = {var.data:'takeshi'}
+    sio.emit(cmd.change_user_name, msg)
     msg = {
         var.group_name : 'default',
         var.data : 'rename and send',
         }
-    sio.emit(cmd.name, 'takeshi')
     sio.emit(cmd.message, msg)
     msg = {
         var.group_name : 'new group',
@@ -67,6 +68,15 @@ def main():
             if sl[1]== 'chat_hist':     r = req.chat_hist
             msg = {var.group_name:group,var.data:r}
             sio.emit(cmd.request, msg)
+        elif sl[0] == 'change_name':
+            new_name=' '.join(sl[1:])
+            msg = {var.data:new_name}
+            sio.emit(cmd.change_user_name, new_name)
+        elif sl[0] == 'change_group_name':
+            new_name=' '.join(sl[1:])
+            msg = {var.group_name:group_name,var.data:new_name}
+            sio.emit(cmd.change_group_name, msg)
+            group = group_name
         elif sl[0] == 'join_group':
             group_name=' '.join(sl[1:])
             msg = {var.group_name:group_name}

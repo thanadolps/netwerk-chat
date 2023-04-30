@@ -147,13 +147,27 @@ def leave_group(sid, data):
         response(sid,response_msg)
         send_group_name_error(sid)
     
-@sio.on(cmd.name)
-def change_name(sid, new_name):
+@sio.on(cmd.change_user_name)
+def change_user_name(sid, data):
+    if type(data) == str:new_name = data
+    else:new_name = data[var.data]
     old_name = db.users[sid].name
     if not db.rename_user(sid, new_name):
         send_error(sid,'cant change name (name may dupe)')
         return
     msg = gen_server_msg(f'change name from {old_name} to {new_name}')
+    send_to_all(msg)
+
+@sio.on(cmd.change_group_name)
+def change_user_name(sid, data):
+    if type(data) == str:new_name = data
+    else:new_name = data[var.data]
+    old_name = data[var.group_name]
+    if not db.rename_group(old_name, new_name):
+        send_error(sid,'cant change name (name may dupe)')
+        return
+    user_name = db.users[sid].name
+    msg = gen_server_msg(f'{user_name} change group name from "{old_name}" to "{new_name}"')
     send_to_all(msg)
 
 
