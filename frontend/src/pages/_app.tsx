@@ -7,6 +7,34 @@ import "@fontsource/roboto/400.css";
 import "@fontsource/roboto/500.css";
 import "@fontsource/roboto/700.css";
 
+import { ThemeProvider, createTheme } from "@mui/material/styles";
+import CssBaseline from "@mui/material/CssBaseline";
+import { useState } from "react";
+
+const darkTheme = createTheme({
+  palette: {
+    mode: "dark",
+  },
+});
+
+const whiteTheme = createTheme({
+  palette: {
+    mode: "light",
+  },
+});
+
+const themeList = [whiteTheme, darkTheme];
+
 export default function App({ Component, pageProps }: AppProps) {
-  return <Component {...pageProps} />;
+  const [theme, setTheme] = useState(0);
+  const cycleTheme = () => {
+    setTheme((theme + 1) % themeList.length);
+  };
+
+  return (
+    <ThemeProvider theme={themeList[theme]}>
+      <CssBaseline />
+      <Component {...pageProps} cycleTheme={cycleTheme} />
+    </ThemeProvider>
+  );
 }
