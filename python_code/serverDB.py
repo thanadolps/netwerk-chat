@@ -97,7 +97,7 @@ class Chat:
     @property
     def members_id(self):return list(self._u)
     @property
-    def members_name(self):return list(u.name for u in self._u)
+    def members_name(self):return list(u.name for u in self._u.values())
 
     def add(self,u):
         self._u[u.id] = u

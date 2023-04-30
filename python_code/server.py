@@ -82,7 +82,10 @@ def send_message(sid, data):
     if sid not in db.groups[group_name].members_id:
         db.join_group(sid, group_name)
     msg[var.group_name] = group_name
-    send_to_group(group_name,msg)
+    if db.get_user(sid).name not in db.get_group(group_name).members_name:
+        send_group_name_error(sid)
+    else:
+        send_to_group(group_name,msg)
 
 @sio.on(cmd.dm)
 def send_dm(sid, data):
@@ -152,7 +155,8 @@ def change_name(sid, new_name):
 
 
 @sio.on(cmd.create_group)
-def create_group(sid, group_name):
+def create_group(sid, data):
+    group_name = data[var.group_name]
     if db.create_groups(group_name):
         u_name = db.users[sid].name
         msg = gen_server_msg(f'group {group_name} has been created by {u_name}')

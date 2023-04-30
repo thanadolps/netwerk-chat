@@ -21,7 +21,7 @@ class var():
     dm = 'dm'
     server_name = 'server'
     default_group_name = 'default'
-    title = 'title
+    title = 'title'
 
 class req():
     group_name = 'group_name'
