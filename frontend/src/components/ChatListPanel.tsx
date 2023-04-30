@@ -3,12 +3,22 @@ import Tabs from "@mui/material/Tabs";
 import Tab from "@mui/material/Tab";
 import Typography from "@mui/material/Typography";
 import Box from "@mui/material/Box";
+import Grid from "@mui/material/Unstable_Grid2";
+import { Paper, styled } from "@mui/material";
 
 interface TabPanelProps {
   children?: React.ReactNode;
   index: number;
   value: number;
 }
+
+const Item = styled(Paper)(({ theme }) => ({
+  backgroundColor: theme.palette.mode === "dark" ? "#1A2027" : "#fff",
+  ...theme.typography.body2,
+  padding: theme.spacing(2),
+  textAlign: "center",
+  color: theme.palette.text.secondary,
+}));
 
 function TabPanel(props: TabPanelProps) {
   const { children, value, index, ...other } = props;
@@ -44,6 +54,8 @@ export default function BasicTabs() {
     setValue(newValue);
   };
 
+  const UserLists = ["A", "B", "C"];
+
   return (
     <Box sx={{ width: "100%" }}>
       <Box sx={{ borderBottom: 1, borderColor: "divider" }}>
@@ -57,7 +69,19 @@ export default function BasicTabs() {
         </Tabs>
       </Box>
       <TabPanel value={value} index={0}>
-        Item One
+        <Box sx={{ flexGrow: 1 }}>
+          <Grid
+            container
+            spacing={{ xs: 2, md: 3 }}
+            columns={{ xs: 4, sm: 8, md: 12 }}
+          >
+            {Array.from(UserLists).map((user, index) => (
+              <Grid xs={2} sm={4} md={4} key={index}>
+                <Item>{user}</Item>
+              </Grid>
+            ))}
+          </Grid>
+        </Box>
       </TabPanel>
       <TabPanel value={value} index={1}>
         Item Two
