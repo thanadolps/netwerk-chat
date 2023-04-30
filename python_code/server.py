@@ -1,7 +1,7 @@
 from aiohttp import web
 import socketio
 
-from Utils import cmd,var
+from Utils import cmd,var,req,res
 from serverDB import DB,Chat,User
 
 db = DB()
@@ -94,9 +94,10 @@ def send_dm(sid, data):
     
 @sio.on(cmd.request)
 def request(sid, data):
-    if data[var.data] == var.group_name: request = db.groups_name
-    else:return
+    if data[var.data] == req.group_name: request = db.groups_name
+    if data[var.data] == req.user_name: request = db.users_name
     msg = gen_server_msg(request)
+    msg[var.title] = data[var.data]
     response(sid,msg)
 
 @sio.on(cmd.join_group)
@@ -106,9 +107,16 @@ def join_group(sid, data):
         msg = gen_server_msg(f"{db.users[sid].name} joined chat {group_name}")
         msg[var.group_name] = group_name
         send_to_group(group_name, msg)
-        msg[var.data]=cmd.join_group
-        response(sid,msg)
+        response_msg = msg.copy()
+        response_msg[var.title] = cmd.join_group
+        response_msg[var.data] = res.success
+        response(sid,response_msg)
     else:
+        response_msg = gen_server_msg(res.success)
+        response_msg[var.group_name] = group_name
+        response_msg[var.title] = cmd.join_group
+        response_msg[var.data] = res.error
+        response(sid,response_msg)
         send_group_name_error(sid)
         
 @sio.on(cmd.leave_group)
@@ -118,9 +126,16 @@ def leave_group(sid, data):
         msg = gen_server_msg(f"{db.users[sid].name} leaved chat {group_name}")
         msg[var.group_name] = group_name
         send_to_group(group_name, msg)
-        msg[var.data]=cmd.leave_group
-        response(sid,msg)
+        response_msg = msg.copy()
+        response_msg[var.title] = cmd.leave_group
+        response_msg[var.data] = res.success
+        response(sid,response_msg)
     else:
+        response_msg = gen_server_msg(res.success)
+        response_msg[var.group_name] = group_name
+        response_msg[var.title] = cmd.leave_group
+        response_msg[var.data] = res.error
+        response(sid,response_msg)
         send_group_name_error(sid)
     
 @sio.on(cmd.name)

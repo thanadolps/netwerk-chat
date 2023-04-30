@@ -21,3 +21,14 @@ class var():
     dm = 'dm'
     server_name = 'server'
     default_group_name = 'default'
+    title = 'title
+
+class req():
+    group_name = 'group_name'
+    user_name = 'user_name'
+    db = 'db'
+    chat_hist = 'chat_hist'
+
+class res():
+    success = 'success'
+    error = 'error'
