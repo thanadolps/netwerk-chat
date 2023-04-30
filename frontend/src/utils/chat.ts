@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { socket } from "./socket";
 
-type Message = {
+type GroupMessage = {
   sender: string;
   group_name: string;
   data: string;
@@ -19,7 +19,7 @@ function getChatHist(groupName: string) {
   socket.emit("request", { data: "chat_hist", group_name: groupName });
 }
 
-function _send(groupName: string, msg: string) {
+function send(groupName: string, msg: string) {
   socket.emit("message", { group_name: groupName, data: msg });
 }
 
@@ -40,6 +40,13 @@ export async function changeName(newName: string) {
 export async function createGroup(newGroupName: string) {
   return await socket.timeout(3000).emitWithAck("create_group", {
     group_name: newGroupName,
+  });
+}
+
+export async function sendDM(reciever: string, msg: string) {
+  return await socket.timeout(3000).emitWithAck("dm", {
+    reciever,
+    data: msg,
   });
 }
 
@@ -96,11 +103,14 @@ export function useChat(
   callbacks?: {
     onJoin?: () => void;
     onLeave?: () => void;
+  },
+  configs?: {
+    ignoreGroupName?: boolean;
   }
 ) {
-  const [chats, setChats] = useState<Message[]>([]);
-  const [lastestChat, SetLastestChat] = useState<Message>();
-  const [error, setError] = useState<Message>();
+  const [chats, setChats] = useState<GroupMessage[]>([]);
+  const [lastestChat, SetLastestChat] = useState<GroupMessage>();
+  const [error, setError] = useState<GroupMessage>();
 
   useEffect(() => {
     // Setup handlers
@@ -108,7 +118,7 @@ export function useChat(
       console.log("response: ", data);
       if (data["title"] == "chat_hist") {
         console.log("Populating chat history");
-        const history: Message[] = data["data"];
+        const history: GroupMessage[] = data["data"];
         setChats((chats) => [...history, ...chats]);
       }
       if (data["title"] == "join_group") {
@@ -123,9 +133,11 @@ export function useChat(
 
     socket.on("error", (data) => setError(data));
 
-    socket.on("message", (message: Message) => {
-      setChats((chats) => [...chats, message]);
-      SetLastestChat(message);
+    socket.on("message", (message: GroupMessage) => {
+      if (configs?.ignoreGroupName || message.group_name === groupName) {
+        setChats((chats) => [...chats, message]);
+        SetLastestChat(message);
+      }
     });
 
     // Inital request
@@ -134,6 +146,7 @@ export function useChat(
     }
 
     return () => {
+      console.log("Clearing");
       if (groupName !== null) {
         console.log("Leaving group ", groupName);
         leave(groupName);
@@ -161,7 +174,7 @@ export function useChat(
 
   const actions = {
     send: (msg: string) => {
-      if (groupName) _send(groupName, msg);
+      if (groupName) send(groupName, msg);
     },
   };
 
