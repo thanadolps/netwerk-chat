@@ -11,6 +11,10 @@ function getGroupsNames() {
   socket.emit("request", { data: "group_name" });
 }
 
+function getUserName() {
+  socket.emit("request", { data: "user_name" });
+}
+
 function getChatHist(groupName: string) {
   socket.emit("request", { data: "chat_hist", group_name: groupName });
 }
@@ -53,6 +57,30 @@ export function useGroups() {
   }, []);
 
   return [groups, refetch] as const;
+}
+
+export function useUsernames() {
+  const [usernames, setUsernames] = useState<string[]>();
+
+  function refetch() {
+    getUserName();
+  }
+
+  useEffect(() => {
+    const handler = socket.on("response", function (data) {
+      if (data["title"] == "user_name") {
+        setUsernames(data["data"]);
+      }
+    });
+
+    refetch();
+
+    return () => {
+      handler.off();
+    };
+  }, []);
+
+  return [usernames, refetch] as const;
 }
 
 export function useChat(
