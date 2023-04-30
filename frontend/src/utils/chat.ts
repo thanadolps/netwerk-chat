@@ -11,23 +11,31 @@ function getGroupsNames() {
   socket.emit("request", { data: "group_name" });
 }
 
+function getChatHist(groupName: string) {
+  socket.emit("request", { data: "chat_hist", group_name: groupName });
+}
+
 function _send(groupName: string, msg: string) {
   socket.emit("message", { group_name: groupName, data: msg });
 }
 
 function join(groupName: string) {
-  socket.emit("join_group", { data: groupName });
+  socket.emit("join_group", { group_name: groupName });
 }
 
 function leave(groupName: string) {
-  socket.emit("leave_group", { data: groupName });
+  socket.emit("leave_group", { group_name: groupName });
+}
+
+export async function changeName(newName: string) {
+  return await socket.timeout(3000).emitWithAck("change_name", newName);
 }
 
 export function useGroups() {
   const [groups, setGroups] = useState<string[]>();
 
   function refetch() {
-    socket.emit("request", { data: "group_name" });
+    getGroupsNames();
   }
 
   useEffect(() => {
@@ -42,9 +50,9 @@ export function useGroups() {
     return () => {
       handler.off();
     };
-  });
+  }, []);
 
-  return [groups, refetch];
+  return [groups, refetch] as const;
 }
 
 export function useChat(
@@ -58,16 +66,20 @@ export function useChat(
   const [lastestChat, SetLastestChat] = useState<Message>();
   const [error, setError] = useState<Message>();
 
-  const [prevGroup, setPrevGroup] = useState(null);
-
   useEffect(() => {
     // Setup handlers
     socket.on("response", function (data) {
-      if (data["data"] == "join_group") {
+      console.log("response: ", data);
+      if (data["title"] == "chat_hist") {
+        console.log("Populating chat history");
+        const history: Message[] = data["data"];
+        setChats((chats) => [...history, ...chats]);
+      }
+      if (data["title"] == "join_group") {
         console.log("Joined group ", groupName);
         callbacks?.onJoin?.();
       }
-      if (data["data"] == "leave_group") {
+      if (data["title"] == "leave_group") {
         console.log("Leave group ", groupName);
         callbacks?.onLeave?.();
       }
@@ -81,16 +93,22 @@ export function useChat(
     });
 
     // Inital request
+    if (groupName !== null) {
+      getChatHist(groupName);
+    }
+
     return () => {
       if (groupName !== null) {
+        console.log("Leaving group ", groupName);
         leave(groupName);
       }
       socket.off("response");
       socket.off("error");
       socket.off("message");
     };
-  });
+  }, []);
 
+  // Handle group change
   useEffect(() => {
     if (groupName !== null) {
       console.log("Try joining group ", groupName);
@@ -111,5 +129,5 @@ export function useChat(
     },
   };
 
-  return [states, actions] as [typeof states, typeof actions];
+  return [states, actions] as const;
 }
