@@ -1,7 +1,7 @@
 import asyncio
 import socketio
 
-from Utils import cmd,var
+from Utils import cmd,var,req,res
 
 sio = socketio.Client(
     # logger=True,
@@ -60,7 +60,13 @@ def main():
         sl = s.split()
         if 'help' in sl:
             print(HELP)
-
+        elif sl[0] in ['ls','list']:
+            if sl[1]== 'group_name':    r = req.group_name
+            if sl[1]== 'user_name':     r = req.user_name
+            # if sl[1]== 'db':            r = req.db
+            if sl[1]== 'chat_hist':     r = req.chat_hist
+            msg = {var.group_name:group,var.data:r}
+            sio.emit(cmd.request, msg)
         elif sl[0] == 'join_group':
             group_name=' '.join(sl[1:])
             msg = {var.group_name:group_name}
@@ -88,12 +94,14 @@ def main():
     sio.wait()
 
 HELP = '''
-to join group: join_group group_name
-to create group: create_group group_name
-to leave group: leave_group group_name
-to change group: group group_name
-to dm user: dm username msg
-to send msg to currently selected group: msg
+to join group: join_group <group_name>
+to create group: create_group <group_name>
+to leave group: leave_group <group_name>
+to change group: group <group_name>
+to dm user: dm <username> <msg>
+to send msg to currently selected group: <msg>
+to list group name: ls group_name
+to list user name: ls user_name
 '''.replace(': ', ': \n\t')
 
 if __name__ == '__main__':
