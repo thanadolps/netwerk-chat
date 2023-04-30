@@ -1,7 +1,7 @@
 from aiohttp import web
 import socketio
 
-from Utils import cmd,var
+from Utils import cmd,var,req,res
 from serverDB import DB,Chat,User
 
 db = DB()
@@ -28,6 +28,7 @@ def send(sid,msg):
     sio.emit(cmd.message,msg, room=sid)
     log(sid,msg)
 def send_to_group(group_name,msg):
+    db.groups[group_name].add_msg(msg)
     for rid in db.groups[group_name].members_id:
         send(rid,msg)
 def send_to_all(msg):
@@ -81,7 +82,10 @@ def send_message(sid, data):
     if sid not in db.groups[group_name].members_id:
         db.join_group(sid, group_name)
     msg[var.group_name] = group_name
-    send_to_group(group_name,msg)
+    if db.get_user(sid).name not in db.get_group(group_name).members_name:
+        send_group_name_error(sid)
+    else:
+        send_to_group(group_name,msg)
 
 @sio.on(cmd.dm)
 def send_dm(sid, data):
@@ -94,9 +98,12 @@ def send_dm(sid, data):
     
 @sio.on(cmd.request)
 def request(sid, data):
-    if data[var.data] == var.group_name: request = db.groups_name
-    else:return
+    if data[var.data] == req.group_name: request = db.groups_name
+    if data[var.data] == req.user_name: request = db.users_name
+    if data[var.data] == req.db: request = db
+    if data[var.data] == req.chat_hist: request = db.get_group(data[var.group_name]).message
     msg = gen_server_msg(request)
+    msg[var.title] = data[var.data]
     response(sid,msg)
 
 @sio.on(cmd.join_group)
@@ -106,9 +113,16 @@ def join_group(sid, data):
         msg = gen_server_msg(f"{db.users[sid].name} joined chat {group_name}")
         msg[var.group_name] = group_name
         send_to_group(group_name, msg)
-        msg[var.data]=cmd.join_group
-        response(sid,msg)
+        response_msg = msg.copy()
+        response_msg[var.title] = cmd.join_group
+        response_msg[var.data] = res.success
+        response(sid,response_msg)
     else:
+        response_msg = gen_server_msg(res.success)
+        response_msg[var.group_name] = group_name
+        response_msg[var.title] = cmd.join_group
+        response_msg[var.data] = res.error
+        response(sid,response_msg)
         send_group_name_error(sid)
         
 @sio.on(cmd.leave_group)
@@ -118,9 +132,16 @@ def leave_group(sid, data):
         msg = gen_server_msg(f"{db.users[sid].name} leaved chat {group_name}")
         msg[var.group_name] = group_name
         send_to_group(group_name, msg)
-        msg[var.data]=cmd.leave_group
-        response(sid,msg)
+        response_msg = msg.copy()
+        response_msg[var.title] = cmd.leave_group
+        response_msg[var.data] = res.success
+        response(sid,response_msg)
     else:
+        response_msg = gen_server_msg(res.success)
+        response_msg[var.group_name] = group_name
+        response_msg[var.title] = cmd.leave_group
+        response_msg[var.data] = res.error
+        response(sid,response_msg)
         send_group_name_error(sid)
     
 @sio.on(cmd.name)
@@ -134,7 +155,8 @@ def change_name(sid, new_name):
 
 
 @sio.on(cmd.create_group)
-def create_group(sid, group_name):
+def create_group(sid, data):
+    group_name = data[var.group_name]
     if db.create_groups(group_name):
         u_name = db.users[sid].name
         msg = gen_server_msg(f'group {group_name} has been created by {u_name}')

@@ -97,13 +97,16 @@ class Chat:
     @property
     def members_id(self):return list(self._u)
     @property
-    def members_name(self):return list(u.name for u in self._u)
+    def members_name(self):return list(u.name for u in self._u.values())
 
     def add(self,u):
         self._u[u.id] = u
         
     def remove(self,u):
         self._u.pop(u.id)
+
+    def add_msg(self,msg):
+        self.message . append(msg)
     
 
     
