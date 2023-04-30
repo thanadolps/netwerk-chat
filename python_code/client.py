@@ -4,7 +4,7 @@ import socketio
 from Utils import cmd,var
 
 sio = socketio.Client(
-    logger=True,
+    # logger=True,
     )
 
 @sio.event
@@ -58,7 +58,10 @@ def main():
     while 1:
         s = input()
         sl = s.split()
-        if sl[0] == 'join_group':
+        if 'help' in sl:
+            print(HELP)
+
+        elif sl[0] == 'join_group':
             group_name=' '.join(sl[1:])
             msg = {var.group_name:group_name}
             sio.emit(cmd.join_group, msg)
@@ -77,12 +80,21 @@ def main():
             group_name=' '.join(sl[1:])
             group = group_name
         elif sl[0] == 'dm': # dm user1 hello
-            msg = {var.group_name:sl[1],var.data:' '.join(sl[2:])}
+            msg = {var.reciever:sl[1],var.data:' '.join(sl[2:])}
             sio.emit(cmd.dm, msg)
         else:
             msg = {var.group_name:group,var.data:s}
             sio.emit(cmd.message, msg)
     sio.wait()
+
+HELP = '''
+to join group: join_group group_name
+to create group: create_group group_name
+to leave group: leave_group group_name
+to change group: group group_name
+to dm user: dm username msg
+to send msg to currently selected group: msg
+'''.replace(': ', ': \n\t')
 
 if __name__ == '__main__':
     asyncio.run(main())

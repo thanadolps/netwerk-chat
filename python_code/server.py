@@ -94,7 +94,10 @@ def send_dm(sid, data):
         var.group_name : var.dm,
         var.data : data[var.data]
         }
-    send(data[var.reciever],msg)
+
+    reciever_name = data[var.reciever]
+    reciever_id = db.get_user_by_name(reciever_name).id
+    send(reciever_id,msg)
     
 @sio.on(cmd.request)
 def request(sid, data):

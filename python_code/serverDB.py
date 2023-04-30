@@ -66,6 +66,9 @@ class DB():
 
     def get_user(self,id):
         return self.users[id]
+    def get_user_by_name(self,name):
+        for i in self.users.values():
+            if i.name == name:return i
     def get_group(self,name):
         return self.groups[name]
         
