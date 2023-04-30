@@ -28,6 +28,7 @@ def send(sid,msg):
     sio.emit(cmd.message,msg, room=sid)
     log(sid,msg)
 def send_to_group(group_name,msg):
+    db.groups[group_name].add_msg(msg)
     for rid in db.groups[group_name].members_id:
         send(rid,msg)
 def send_to_all(msg):
@@ -96,6 +97,8 @@ def send_dm(sid, data):
 def request(sid, data):
     if data[var.data] == req.group_name: request = db.groups_name
     if data[var.data] == req.user_name: request = db.users_name
+    if data[var.data] == req.db: request = db
+    if data[var.data] == req.chat_hist: request = db.get_group(data[var.group_name]).message
     msg = gen_server_msg(request)
     msg[var.title] = data[var.data]
     response(sid,msg)

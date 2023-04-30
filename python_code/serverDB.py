@@ -104,6 +104,9 @@ class Chat:
         
     def remove(self,u):
         self._u.pop(u.id)
+
+    def add_msg(self,msg):
+        self.message . append(msg)
     
 
     
