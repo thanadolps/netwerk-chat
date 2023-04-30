@@ -32,7 +32,15 @@ function leave(groupName: string) {
 }
 
 export async function changeName(newName: string) {
-  return await socket.timeout(3000).emitWithAck("change_name", newName);
+  return await socket.timeout(3000).emitWithAck("change_user_name", {
+    data: newName,
+  });
+}
+
+export async function createGroup(newGroupName: string) {
+  return await socket.timeout(3000).emitWithAck("create_group", {
+    group_name: newGroupName,
+  });
 }
 
 export function useGroups() {
