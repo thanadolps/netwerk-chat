@@ -10,6 +10,7 @@ import "@fontsource/roboto/700.css";
 import { ThemeProvider, createTheme } from "@mui/material/styles";
 import CssBaseline from "@mui/material/CssBaseline";
 import { useState } from "react";
+import dynamic from "next/dynamic";
 
 const whiteTheme = createTheme({
   palette: {
@@ -25,7 +26,7 @@ const darkTheme = createTheme({
 
 const themeList = [whiteTheme, darkTheme];
 
-export default function App({ Component, pageProps }: AppProps) {
+function App({ Component, pageProps }: AppProps) {
   const [theme, setTheme] = useState(0);
   const cycleTheme = () => {
     setTheme((theme + 1) % themeList.length);
@@ -34,7 +35,11 @@ export default function App({ Component, pageProps }: AppProps) {
   return (
     <ThemeProvider theme={themeList[theme]}>
       <CssBaseline />
-      <Component {...pageProps} cycleTheme={cycleTheme} />
+      <Component {...pageProps} cycleTheme={cycleTheme} theme={theme} />
     </ThemeProvider>
   );
 }
+
+export default dynamic(() => Promise.resolve(App), {
+  ssr: false,
+});

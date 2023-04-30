@@ -48,6 +48,14 @@ const MainPage: Function = (props: MainPageProps) => {
 
   return (
     <div className="my-10 mx-auto w-[80vw]">
+      <Button
+        variant="outlined"
+        onClick={props.cycleTheme}
+        endIcon={<ColorLensIcon />}
+        sx={{ position: "absolute", top: "0.5rem", right: "0.5rem" }}
+      >
+        Change Theme
+      </Button>
       <Typography variant="h4">ChatTGT</Typography>
       <div className="flex justify-between">
         <div className="flex justify-start">
@@ -77,14 +85,6 @@ const MainPage: Function = (props: MainPageProps) => {
             </DialogActions>
           </Dialog>
         </div>
-
-        <Button
-          variant="outlined"
-          onClick={props.cycleTheme}
-          endIcon={<ColorLensIcon />}
-        >
-          Change Theme
-        </Button>
       </div>
 
       <ChatListPanel />

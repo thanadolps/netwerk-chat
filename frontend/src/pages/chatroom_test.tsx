@@ -7,10 +7,13 @@ import {
   MessageInput,
   Conversation,
   ConversationHeader,
+  Button,
 } from "@chatscope/chat-ui-kit-react";
+import ColorLensIcon from "@mui/icons-material/ColorLens";
 import { useRouter } from "next/router";
 
 type ChatProps = {
+  theme: number;
   cycleTheme: any;
 };
 
@@ -18,7 +21,10 @@ const ChatDemo: Function = (props: ChatProps) => {
   const router = useRouter();
 
   return (
-    <div style={styles} className="h-[100vh]">
+    <div
+      style={styles}
+      className={`h-[100vh] ${props.theme == 1 ? "invert" : ""}`}
+    >
       <MainContainer>
         <ChatContainer>
           <ConversationHeader>
@@ -28,6 +34,15 @@ const ChatDemo: Function = (props: ChatProps) => {
               }}
             />
             <ConversationHeader.Content userName={"Joe"} />
+            <ConversationHeader.Actions>
+              <Button
+                variant="outlined"
+                onClick={props.cycleTheme}
+                endIcon={<ColorLensIcon />}
+              >
+                Change Theme
+              </Button>
+            </ConversationHeader.Actions>
           </ConversationHeader>
           <MessageList>
             <Message
