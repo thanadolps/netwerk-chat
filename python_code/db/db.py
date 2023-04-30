@@ -14,6 +14,7 @@ class ChatRoom(db.Entity):
 
 class Massage(db.Entity):
     id = PrimaryKey(int, auto=True)
+    data = Required(str)
     massage_no = Required(int)
     sender = Required(str)
     chat_room = Required(ChatRoom)
