@@ -112,6 +112,8 @@ to dm user: dm <username> <msg>
 to send msg to currently selected group: <msg>
 to list group name: ls group_name
 to list user name: ls user_name
+to rename group: change_name <new_name>
+to rename user: change_group_name <new_name>
 '''.replace(': ', ': \n\t')
 
 if __name__ == '__main__':
