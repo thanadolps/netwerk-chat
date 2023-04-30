@@ -1,0 +1,28 @@
+<div class="container">
+  <div class="left-panel">
+    <h2>Select Group Chat</h2>
+    <select id="group-chat-select"></select>
+    <button id="join-leave-btn">Join</button>
+    <br><br>
+    <h2>Select User Name</h2>
+    <select id="user-name-select"></select>
+    <br><br>
+    <h2>Commands</h2>
+    <input type="radio" name="commands" value="send-message" id="send-message-radio" checked>
+    <label for="send-message-radio">Send message</label>
+    <input type="radio" name="commands" value="change-name" id="change-name-radio">
+    <label for="change-name-radio">Change Name</label>
+    <input type="radio" name="commands" value="change-group-name" id="change-group-name-radio">
+    <label for="change-group-name-radio">Change Group Name</label>
+  </div>
+  <div class="right-panel">
+    <div class="chat-window" id="main-chat-window">
+      <h2>Group Chat: <span id="current-group-name"></span></h2>
+      <div id="messages"></div>
+      <input type="text" id="chat-box">
+      <button id="send-btn">Send</button>
+    </div>
+  </div>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.6.0/socket.io.js"></script>
+<script src="./script.js"></script>
