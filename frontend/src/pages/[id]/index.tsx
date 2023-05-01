@@ -1,26 +1,25 @@
 import { useRouter } from "next/router";
 
+import ColorLensIcon from "@mui/icons-material/ColorLens";
+import EditIcon from "@mui/icons-material/Edit";
 import {
   Button,
   Dialog,
   DialogActions,
   DialogContent,
-  DialogContentText,
   DialogTitle,
-  FormControl,
-  FormHelperText,
-  Input,
-  InputLabel,
-  TextField,
   styled,
+  TextField,
 } from "@mui/material";
+import { blue } from "@mui/material/colors";
 import Typography from "@mui/material/Typography";
-import { purple, blue } from "@mui/material/colors";
-import ColorLensIcon from "@mui/icons-material/ColorLens";
-import EditIcon from "@mui/icons-material/Edit";
 
 import ChatListPanel from "@/components/ChatListPanel";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+
+import { Refresh } from "@mui/icons-material";
+import { toast } from "react-toastify";
+import * as chat from "../../utils/chat";
 
 const ChangeNicknameButton = styled(Button)({
   textTransform: "none",
@@ -37,6 +36,16 @@ const MainPage: Function = (props: MainPageProps) => {
   const { id } = router.query;
 
   const [open, setOpen] = useState(false);
+  const [newNickname, setNewNickname] = useState(id);
+
+  // Handle nickname change and initiliazation
+  useEffect(() => {
+    chat.changeName(id as string).catch((err) => {
+      // Doesn't seem to actually work right now
+      console.log(err);
+      toast.error("Failed to change nickname");
+    });
+  }, [id]);
 
   const handleClickOpen = () => {
     setOpen(true);
@@ -45,6 +54,17 @@ const MainPage: Function = (props: MainPageProps) => {
   const handleClose = () => {
     setOpen(false);
   };
+
+  // Fetch data from socket
+  const [groups, refetchGroups] = chat.useGroups();
+  const [clients, refetchClients] = chat.useUsernames();
+  const refetchAll = () => {
+    refetchGroups();
+    refetchClients();
+  };
+
+  // For creating a new group
+  const [openCreateGrop, setOpenCreateGroup] = useState(false);
 
   return (
     <div className="my-10 mx-auto w-[80vw]">
@@ -77,19 +97,105 @@ const MainPage: Function = (props: MainPageProps) => {
                 type="text"
                 fullWidth
                 variant="standard"
+                value={newNickname}
+                onChange={(e) => setNewNickname(e.target.value)}
               />
             </DialogContent>
             <DialogActions>
               <Button onClick={handleClose}>Cancel</Button>
-              <Button onClick={handleClose}>Change</Button>
+              <Button
+                onClick={() => {
+                  router.replace(`/${newNickname}`);
+                  refetchClients();
+                  handleClose();
+                }}
+              >
+                Change
+              </Button>
             </DialogActions>
           </Dialog>
         </div>
       </div>
 
-      <ChatListPanel />
+      <Button variant="contained">
+        Refresh ChatRoom and GroupChat
+        <Refresh onClick={refetchAll} />
+      </Button>
+
+      <ChatListPanel
+        chatCards={
+          clients
+            ?.filter((client) => client !== id)
+            .map((client) => ({
+              title: client,
+              action() {
+                router.push(`/${id}/dm/${client}`);
+              },
+            })) ?? []
+        }
+        groupCards={[
+          ...(groups?.map((group) => ({
+            title: group,
+            action() {
+              router.push(`/${id}/group/${group}`);
+            },
+          })) ?? []),
+          {
+            title: "Create Group",
+            action() {
+              setOpenCreateGroup(true);
+            },
+          },
+        ]}
+      />
+
+      <CreateGroupDialog
+        open={openCreateGrop}
+        onClose={() => setOpenCreateGroup(false)}
+        afterCreate={() => {
+          refetchGroups();
+        }}
+      />
     </div>
   );
 };
+
+function CreateGroupDialog(props: {
+  open: boolean;
+  onClose: () => void;
+  afterCreate?: () => void;
+}) {
+  const [group, setGroup] = useState("");
+
+  const handleCreateGroup = () => {
+    chat.createGroup(group).then(() => {
+      toast.success(`Created group ${group}`);
+      props.onClose();
+      props.afterCreate?.();
+    });
+  };
+
+  return (
+    <Dialog open={props.open} onClose={props.onClose}>
+      <DialogTitle>Create Group</DialogTitle>
+      <DialogContent>
+        <TextField
+          autoFocus
+          margin="dense"
+          name="group"
+          type="text"
+          fullWidth
+          variant="standard"
+          value={group}
+          onChange={(e) => setGroup(e.target.value)}
+        />
+      </DialogContent>
+      <DialogActions>
+        <Button onClick={() => props.onClose()}>Cancel</Button>
+        <Button onClick={handleCreateGroup}>Create</Button>
+      </DialogActions>
+    </Dialog>
+  );
+}
 
 export default MainPage;

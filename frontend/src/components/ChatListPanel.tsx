@@ -4,7 +4,7 @@ import Tab from "@mui/material/Tab";
 import Typography from "@mui/material/Typography";
 import Box from "@mui/material/Box";
 import Grid from "@mui/material/Unstable_Grid2";
-import { Paper, styled } from "@mui/material";
+import { Button, Paper, styled } from "@mui/material";
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -47,14 +47,22 @@ function a11yProps(index: number) {
   };
 }
 
-export default function BasicTabs() {
+interface ActionableCard {
+  title: string;
+  action?: () => void;
+}
+
+export interface BasicTabsProps {
+  chatCards: ActionableCard[];
+  groupCards: ActionableCard[];
+}
+
+export default function BasicTabs(props: BasicTabsProps) {
   const [value, setValue] = React.useState(0);
 
   const handleChange = (event: React.SyntheticEvent, newValue: number) => {
     setValue(newValue);
   };
-
-  const UserLists = ["A", "B", "C"];
 
   return (
     <Box sx={{ width: "100%" }}>
@@ -75,16 +83,32 @@ export default function BasicTabs() {
             spacing={{ xs: 2, md: 3 }}
             columns={{ xs: 4, sm: 8, md: 12 }}
           >
-            {Array.from(UserLists).map((user, index) => (
+            {props.chatCards.map(({ title, action }, index) => (
               <Grid xs={2} sm={4} md={4} key={index}>
-                <Item>{user}</Item>
+                <Item>
+                  <Button onClick={action}>{title}</Button>
+                </Item>
               </Grid>
             ))}
           </Grid>
         </Box>
       </TabPanel>
       <TabPanel value={value} index={1}>
-        Item Two
+        <Box sx={{ flexGrow: 1 }}>
+          <Grid
+            container
+            spacing={{ xs: 2, md: 3 }}
+            columns={{ xs: 4, sm: 8, md: 12 }}
+          >
+            {props.groupCards.map(({ title, action }, index) => (
+              <Grid xs={2} sm={4} md={4} key={index}>
+                <Item>
+                  <Button onClick={action}>{title}</Button>
+                </Item>
+              </Grid>
+            ))}
+          </Grid>
+        </Box>
       </TabPanel>
     </Box>
   );

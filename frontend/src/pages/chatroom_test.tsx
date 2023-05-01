@@ -1,14 +1,13 @@
-import styles from "@chatscope/chat-ui-kit-styles/dist/default/styles.min.css";
 import {
-  MainContainer,
+  Button,
   ChatContainer,
-  MessageList,
+  ConversationHeader,
+  MainContainer,
   Message,
   MessageInput,
-  Conversation,
-  ConversationHeader,
-  Button,
+  MessageList,
 } from "@chatscope/chat-ui-kit-react";
+import styles from "@chatscope/chat-ui-kit-styles/dist/default/styles.min.css";
 import ColorLensIcon from "@mui/icons-material/ColorLens";
 import { useRouter } from "next/router";
 

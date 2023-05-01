@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { socket } from "./socket";
 
 type GroupMessage = {
@@ -49,7 +49,27 @@ export async function sendDM(reciever: string, msg: string) {
     data: msg,
   });
 }
-
+/**
+ * @example
+ * ```tsx
+ * const [groups, refetch] = useGroups();
+ *
+ * return (
+ *  <div>
+ *    <ul>
+ *    Display each groups, typeof  group is a string (group name):
+ *    {groups?.map((group: string) => (
+ *      <div key={group}>{group}</div>
+ *    ))}
+ *    </ul>
+ *
+ *    Refetch the groups when click,
+ *    without using refetch, group will only fetch once when component mount
+ *    <button onClick={refetch}>Refetch</button>
+ *  </div>
+ * )
+ * ```
+ */
 export function useGroups() {
   const [groups, setGroups] = useState<string[]>();
 
@@ -59,7 +79,8 @@ export function useGroups() {
 
   useEffect(() => {
     const handler = socket.on("response", function (data) {
-      if (data["group_name"] == "server") {
+      console.log("DATA = ", data);
+      if (data["title"] == "group_name") {
         setGroups(data["data"]);
       }
     });
@@ -83,6 +104,7 @@ export function useUsernames() {
 
   useEffect(() => {
     const handler = socket.on("response", function (data) {
+      console.log("response: ", data);
       if (data["title"] == "user_name") {
         setUsernames(data["data"]);
       }
@@ -112,14 +134,22 @@ export function useChat(
   const [lastestChat, SetLastestChat] = useState<GroupMessage>();
   const [error, setError] = useState<GroupMessage>();
 
+  const historyLock = useRef(false);
+
   useEffect(() => {
     // Setup handlers
     socket.on("response", function (data) {
       console.log("response: ", data);
       if (data["title"] == "chat_hist") {
-        console.log("Populating chat history");
-        const history: GroupMessage[] = data["data"];
-        setChats((chats) => [...history, ...chats]);
+        if (historyLock.current) {
+          console.log("Duplicate chat history, ignore");
+        } else {
+          console.log("Populating chat history");
+          const history: GroupMessage[] = data["data"];
+          setChats((chats) => [...history, ...chats]);
+
+          historyLock.current = true;
+        }
       }
       if (data["title"] == "join_group") {
         console.log("Joined group ", groupName);
@@ -141,13 +171,18 @@ export function useChat(
     });
 
     // Inital request
-    if (groupName !== null) {
-      getChatHist(groupName);
+    if (groupName) {
+      if (historyLock.current) {
+        console.log("Already have chat history, no request");
+      } else {
+        console.log("Request chat history on group ", groupName);
+        getChatHist(groupName);
+      }
     }
 
     return () => {
       console.log("Clearing");
-      if (groupName !== null) {
+      if (groupName) {
         console.log("Leaving group ", groupName);
         leave(groupName);
       }
@@ -159,7 +194,7 @@ export function useChat(
 
   // Handle group change
   useEffect(() => {
-    if (groupName !== null) {
+    if (groupName) {
       console.log("Try joining group ", groupName);
       join(groupName);
     } else {
@@ -179,4 +214,45 @@ export function useChat(
   };
 
   return [states, actions] as const;
+}
+
+export function useDM(
+  reciever: string,
+  callbacks?: {
+    onJoin?: () => void;
+    onLeave?: () => void;
+  }
+) {
+  // In dm, recive only
+  const [{ chats, lastestChat, error }] = useChat("dm", callbacks, {
+    ignoreGroupName: true,
+  });
+
+  const [fullChats, setFullChats] = useState<GroupMessage[]>([]);
+  const [lastestFullChat, setLastestFullChat] = useState<GroupMessage>();
+
+  useEffect(() => {
+    if (lastestChat) {
+      setFullChats((fullChat) => [...fullChat, lastestChat]);
+      setLastestFullChat(lastestChat);
+    }
+  }, [lastestChat]);
+
+  const actions = {
+    send: async (msg: string) => {
+      await sendDM(reciever, msg);
+      const myMsg = {
+        group_name: "dm",
+        sender: "$me",
+        data: msg,
+      };
+      setFullChats((fullChat) => [...fullChat, myMsg]);
+      setLastestFullChat(myMsg);
+    },
+  };
+
+  return [
+    { chats: fullChats, lastestChat: lastestFullChat, error },
+    actions,
+  ] as const;
 }
