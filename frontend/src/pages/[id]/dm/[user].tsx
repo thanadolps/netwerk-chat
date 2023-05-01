@@ -35,7 +35,7 @@ export default function DMChat(props: ChatProps) {
 
   useEffect(() => {
     if (error) {
-      toast.error(error);
+      toast.error(error.data);
     }
   }, [error]);
 
@@ -67,9 +67,9 @@ export default function DMChat(props: ChatProps) {
             <ConversationHeader.Content userName={`${user} (Temporary DM)`} />
             <ConversationHeader.Actions>
               <Button
-                variant="outlined"
+                // variant="outlined"
                 onClick={props.cycleTheme}
-                endIcon={<ColorLensIcon />}
+                // endIcon={<ColorLensIcon />}
               >
                 Change Theme
               </Button>

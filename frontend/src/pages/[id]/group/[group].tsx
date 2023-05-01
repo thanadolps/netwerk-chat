@@ -34,7 +34,7 @@ export default function GroupChat(props: ChatProps) {
   const [{ chats, error }, { send }] = chat.useChat(group ?? null);
   useEffect(() => {
     if (error) {
-      toast.error(error);
+      toast.error(error.data);
     }
   }, [error]);
 
@@ -64,9 +64,9 @@ export default function GroupChat(props: ChatProps) {
             <ConversationHeader.Content userName={group} />
             <ConversationHeader.Actions>
               <Button
-                variant="outlined"
+                // variant="outlined"
                 onClick={props.cycleTheme}
-                endIcon={<ColorLensIcon />}
+                // endIcon={<ColorLensIcon />}
               >
                 Change Theme
               </Button>

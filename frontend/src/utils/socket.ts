@@ -1,11 +1,16 @@
 import { io, Socket } from "socket.io-client";
 
-// "undefined" means the URL will be computed from the `window.location` object
-const URL =
-  process.env.NODE_ENV === "production" ? undefined : "http://localhost:5069";
+const SOCKET_URL =
+  process.env.NODE_ENV === "production"
+    ? process.env.SOCKET_URL
+    : "http://localhost:5069";
 
 declare global {
   var socket: Socket;
 }
 
-export const socket = global.socket || io(URL);
+if (!SOCKET_URL) {
+  throw new Error("SOCKET_URL is undefined");
+}
+
+export const socket = global.socket || io(SOCKET_URL);
