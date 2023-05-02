@@ -17,7 +17,6 @@ import Typography from "@mui/material/Typography";
 import ChatListPanel from "@/components/ChatListPanel";
 import { useCallback, useEffect, useState } from "react";
 
-import { Refresh } from "@mui/icons-material";
 import { toast } from "react-toastify";
 import * as chat from "../../utils/chat";
 
@@ -73,7 +72,7 @@ const MainPage: Function = (props: MainPageProps) => {
         console.log(err);
         toast.error("Failed to change nickname");
       });
-  }, [id, refetchClients]);
+  }, [id]);
 
   // For creating a new group
   const [openCreateGrop, setOpenCreateGroup] = useState(false);
@@ -162,6 +161,7 @@ const MainPage: Function = (props: MainPageProps) => {
         afterCreate={() => {
           refetchGroups();
         }}
+        blacklist={["dm", ...(groups?.map((g) => g.toLowerCase()) ?? [])]}
       />
     </div>
   );
@@ -171,15 +171,20 @@ function CreateGroupDialog(props: {
   open: boolean;
   onClose: () => void;
   afterCreate?: () => void;
+  blacklist?: string[];
 }) {
   const [group, setGroup] = useState("");
 
-  const handleCreateGroup = () => {
-    chat.createGroup(group).then(() => {
-      toast.success(`Created group ${group}`);
-      props.onClose();
-      props.afterCreate?.();
-    });
+  const handleCreateGroup = async () => {
+    if (props.blacklist?.includes(group.toLowerCase())) {
+      toast.error(`Group ${group} already exists or in used`);
+      return;
+    }
+
+    await chat.createGroup(group);
+    toast.success(`Created group ${group}`);
+    props.onClose();
+    props.afterCreate?.();
   };
 
   return (
