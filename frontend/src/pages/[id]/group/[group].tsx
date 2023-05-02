@@ -9,12 +9,18 @@ import {
   MessageModel,
 } from "@chatscope/chat-ui-kit-react";
 import styles from "@chatscope/chat-ui-kit-styles/dist/default/styles.min.css";
-import { Button as MButton } from "@mui/material";
+import {
+  FormControlLabel,
+  FormGroup,
+  Button as MButton,
+  Select as MSelect,
+  Switch as MSwitch,
+} from "@mui/material";
 import ColorLensIcon from "@mui/icons-material/ColorLens";
 import { useTheme } from "@mui/material";
 import { useRouter } from "next/router";
 
-import { useEffect } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { toast } from "react-toastify";
 import * as chat from "../../../utils/chat";
 
@@ -47,8 +53,40 @@ export default function GroupChat(props: ChatProps) {
     position: "single",
   }));
 
+  // SFX Button
+  const [sfxChecked, setSfxChecked] = useState(false);
+  const sfxHandleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setSfxChecked(event.target.checked);
+  };
+  const label = { inputProps: { "aria-label": "Switch demo" } };
+
+  // SFX
+  const sfxLimit = 10;
+  const sfx = "ting";
+  const audio = useMemo(() => {
+    let tingArr = [];
+    for (let i = 0; i < sfxLimit - 1; i++) {
+      tingArr.push(new Audio("/ting.mp3"));
+    }
+    tingArr.push(new Audio("/kanye.mp3"));
+    return {
+      ting: tingArr,
+      kanye: new Audio("/kanye.mp3"),
+    };
+  }, []);
+
+  const [sidx, setSidx] = useState(0);
+
+  function playSfx() {
+    audio[sfx][sidx].play();
+    setSidx((sidx + 1) % sfxLimit);
+    console.log(sidx);
+  }
+
   // Chat send
   const handleSend = (message: string) => {
+    console.log("CLICKED");
+    if (sfxChecked) playSfx();
     send(message);
   };
 
@@ -64,6 +102,18 @@ export default function GroupChat(props: ChatProps) {
             />
             <ConversationHeader.Content userName={group} />
             <ConversationHeader.Actions>
+              <FormGroup>
+                <FormControlLabel
+                  control={
+                    <MSwitch
+                      checked={sfxChecked}
+                      onChange={sfxHandleChange}
+                      inputProps={{ "aria-label": "controlled" }}
+                    />
+                  }
+                  label="SFX"
+                />
+              </FormGroup>
               <MButton variant="outlined" onClick={props.cycleTheme}>
                 Change Theme <ColorLensIcon />
               </MButton>
