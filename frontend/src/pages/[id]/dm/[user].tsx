@@ -9,6 +9,7 @@ import {
   MessageModel,
 } from "@chatscope/chat-ui-kit-react";
 import styles from "@chatscope/chat-ui-kit-styles/dist/default/styles.min.css";
+import { Button as MButton } from "@mui/material";
 import ColorLensIcon from "@mui/icons-material/ColorLens";
 import { useTheme } from "@mui/material";
 import { useRouter } from "next/router";
@@ -41,7 +42,7 @@ export default function DMChat(props: ChatProps) {
 
   // Chat display
   const models: MessageModel[] = chats.map((chat) => ({
-    message: `${chat.sender}: ${chat.data}`,
+    message: `${chat.data}`,
     sender: chat.sender,
     direction: chat.sender === "$me" ? "outgoing" : "incoming",
     position: "single",
@@ -66,13 +67,9 @@ export default function DMChat(props: ChatProps) {
             />
             <ConversationHeader.Content userName={`${user} (Temporary DM)`} />
             <ConversationHeader.Actions>
-              <Button
-                // variant="outlined"
-                onClick={props.cycleTheme}
-                // endIcon={<ColorLensIcon />}
-              >
-                Change Theme
-              </Button>
+              <MButton variant="outlined" onClick={props.cycleTheme}>
+                Change Theme <ColorLensIcon />
+              </MButton>
             </ConversationHeader.Actions>
           </ConversationHeader>
           <MessageList>
