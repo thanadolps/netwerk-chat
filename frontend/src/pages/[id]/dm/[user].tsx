@@ -20,6 +20,7 @@ import * as chat from "../../../utils/chat";
 import { ReactMarkdown } from "react-markdown/lib/react-markdown";
 import remarkGfm from "remark-gfm";
 import { toUwuOrNotUwu } from "@/utils/uwu";
+import { m2h } from "@/utils/remark";
 
 type ChatProps = {
   cycleTheme: any;
@@ -79,11 +80,9 @@ export default function DMChat(props: ChatProps) {
           <MessageList>
             {models.map((model, i) => (
               <Message key={i} model={model}>
-                <Message.CustomContent>
-                  <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                    {model.message?.replaceAll("<br>", "\n") ?? ""}
-                  </ReactMarkdown>
-                </Message.CustomContent>
+                <Message.HtmlContent
+                  html={String(m2h.processSync(model.message))}
+                ></Message.HtmlContent>
               </Message>
             ))}
           </MessageList>
