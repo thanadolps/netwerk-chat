@@ -23,6 +23,10 @@ import { useRouter } from "next/router";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "react-toastify";
 import * as chat from "../../../utils/chat";
+import { ReactMarkdown } from "react-markdown/lib/react-markdown";
+
+import remarkGfm from "remark-gfm";
+import { toUwuOrNotUwu } from "@/utils/uwu";
 
 type ChatProps = {
   cycleTheme: any;
@@ -30,8 +34,8 @@ type ChatProps = {
 
 export default function GroupChat(props: ChatProps) {
   const router = useRouter();
-  const id = router.query["id"] as string;
-  const group = router.query["group"] as string;
+  const id = router.query["id"] as string | undefined;
+  const group = router.query["group"] as string | undefined;
 
   // Theme
   const theme = useTheme();
@@ -41,7 +45,7 @@ export default function GroupChat(props: ChatProps) {
   const [{ chats, error }, { send }] = chat.useChat(group ?? null);
   useEffect(() => {
     if (error) {
-      toast.error(error.data);
+      toast.error(JSON.stringify(error));
     }
   }, [error]);
 
@@ -84,9 +88,12 @@ export default function GroupChat(props: ChatProps) {
   }
 
   // Chat send
+  const uwu = toUwuOrNotUwu(0.1);
   const handleSend = (message: string) => {
     if (sfxChecked) playSfx();
-    send(message);
+    send(uwu(message.trim(), () => toast.success("uwu"))).catch((err) => {
+      toast.error(err);
+    });
   };
 
   return (
@@ -122,6 +129,11 @@ export default function GroupChat(props: ChatProps) {
             {models.map((model, i) => (
               <Message key={i} model={model}>
                 <Message.Header sender={model.sender} />
+                <Message.CustomContent>
+                  <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                    {model.message?.replaceAll("<br>", "\n") ?? ""}
+                  </ReactMarkdown>
+                </Message.CustomContent>
               </Message>
             ))}
           </MessageList>

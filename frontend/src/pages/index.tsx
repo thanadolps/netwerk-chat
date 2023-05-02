@@ -1,5 +1,5 @@
 import ColorLensIcon from "@mui/icons-material/ColorLens";
-import { Button, TextField, Typography } from "@mui/material";
+import { Button, LinearProgress, TextField, Typography } from "@mui/material";
 import { Inter } from "next/font/google";
 
 import { useForm } from "@felte/react";
@@ -9,7 +9,7 @@ const inter = Inter({ subsets: ["latin"] });
 
 export default function Home(props: any) {
   const router = useRouter();
-  const { form } = useForm<{ nickname: string }>({
+  const { form, isSubmitting } = useForm<{ nickname: string }>({
     onSubmit({ nickname }) {
       router.push(`/${nickname}`);
     },
@@ -35,7 +35,9 @@ export default function Home(props: any) {
           name="nickname"
           label="Nickname"
           variant="outlined"
+          disabled={isSubmitting()}
         />
+        {isSubmitting() && <LinearProgress />}
       </form>
     </main>
   );

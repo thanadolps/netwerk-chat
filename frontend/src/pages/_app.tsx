@@ -13,6 +13,9 @@ import { useState } from "react";
 import dynamic from "next/dynamic";
 import { SelectChangeEvent } from "@mui/material";
 
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+
 const whiteTheme = createTheme({
   palette: {
     mode: "light",
@@ -38,6 +41,7 @@ function App({ Component, pageProps }: AppProps) {
     <ThemeProvider theme={themeList[theme]}>
       <CssBaseline />
       <Component {...pageProps} cycleTheme={cycleTheme} theme={theme} />
+      <ToastContainer />
     </ThemeProvider>
   );
 }

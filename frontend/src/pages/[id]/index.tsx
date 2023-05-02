@@ -15,9 +15,8 @@ import { blue } from "@mui/material/colors";
 import Typography from "@mui/material/Typography";
 
 import ChatListPanel from "@/components/ChatListPanel";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
-import { Refresh } from "@mui/icons-material";
 import { toast } from "react-toastify";
 import * as chat from "../../utils/chat";
 
@@ -38,15 +37,6 @@ const MainPage: Function = (props: MainPageProps) => {
   const [open, setOpen] = useState(false);
   const [newNickname, setNewNickname] = useState(id);
 
-  // Handle nickname change and initiliazation
-  useEffect(() => {
-    chat.changeName(id as string).catch((err) => {
-      // Doesn't seem to actually work right now
-      console.log(err);
-      toast.error("Failed to change nickname");
-    });
-  }, [id]);
-
   const handleClickOpen = () => {
     setOpen(true);
   };
@@ -58,10 +48,31 @@ const MainPage: Function = (props: MainPageProps) => {
   // Fetch data from socket
   const [groups, refetchGroups] = chat.useGroups();
   const [clients, refetchClients] = chat.useUsernames();
-  const refetchAll = () => {
+  const refetchAll = useCallback(() => {
     refetchGroups();
     refetchClients();
-  };
+  }, [refetchGroups, refetchClients]);
+
+  useEffect(() => {
+    const delay = 1500 + Math.random() * 1500;
+    const interval = setInterval(() => {
+      console.log("Refetching");
+      refetchAll();
+    }, delay);
+    return () => clearInterval(interval);
+  }, [refetchAll]);
+
+  // Handle nickname change and initiliazation
+  useEffect(() => {
+    chat
+      .changeName(id as string)
+      .then((x) => refetchClients())
+      .catch((err) => {
+        // Doesn't seem to actually work right now
+        console.log(err);
+        toast.error("Failed to change nickname");
+      });
+  }, [id]);
 
   // For creating a new group
   const [openCreateGrop, setOpenCreateGroup] = useState(false);
@@ -117,11 +128,6 @@ const MainPage: Function = (props: MainPageProps) => {
         </div>
       </div>
 
-      <Button variant="contained">
-        Refresh ChatRoom and GroupChat
-        <Refresh onClick={refetchAll} />
-      </Button>
-
       <ChatListPanel
         chatCards={
           clients
@@ -155,6 +161,7 @@ const MainPage: Function = (props: MainPageProps) => {
         afterCreate={() => {
           refetchGroups();
         }}
+        blacklist={["dm", ...(groups?.map((g) => g.toLowerCase()) ?? [])]}
       />
     </div>
   );
@@ -164,15 +171,20 @@ function CreateGroupDialog(props: {
   open: boolean;
   onClose: () => void;
   afterCreate?: () => void;
+  blacklist?: string[];
 }) {
   const [group, setGroup] = useState("");
 
-  const handleCreateGroup = () => {
-    chat.createGroup(group).then(() => {
-      toast.success(`Created group ${group}`);
-      props.onClose();
-      props.afterCreate?.();
-    });
+  const handleCreateGroup = async () => {
+    if (props.blacklist?.includes(group.toLowerCase())) {
+      toast.error(`Group ${group} already exists or in used`);
+      return;
+    }
+
+    await chat.createGroup(group);
+    toast.success(`Created group ${group}`);
+    props.onClose();
+    props.afterCreate?.();
   };
 
   return (

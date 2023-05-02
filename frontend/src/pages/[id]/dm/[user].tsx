@@ -17,6 +17,9 @@ import { useRouter } from "next/router";
 import { useEffect } from "react";
 import { toast } from "react-toastify";
 import * as chat from "../../../utils/chat";
+import { ReactMarkdown } from "react-markdown/lib/react-markdown";
+import remarkGfm from "remark-gfm";
+import { toUwuOrNotUwu } from "@/utils/uwu";
 
 type ChatProps = {
   cycleTheme: any;
@@ -49,8 +52,9 @@ export default function DMChat(props: ChatProps) {
   }));
 
   // Chat send
+  const uwu = toUwuOrNotUwu(0.1);
   const handleSend = (message: string) => {
-    send(message).catch((err) => {
+    send(uwu(message.trim(), () => toast.success("uwu"))).catch((err) => {
       toast.error(err);
     });
   };
@@ -74,12 +78,18 @@ export default function DMChat(props: ChatProps) {
           </ConversationHeader>
           <MessageList>
             {models.map((model, i) => (
-              <Message key={i} model={model}></Message>
+              <Message key={i} model={model}>
+                <Message.CustomContent>
+                  <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                    {model.message?.replaceAll("<br>", "\n") ?? ""}
+                  </ReactMarkdown>
+                </Message.CustomContent>
+              </Message>
             ))}
           </MessageList>
           <MessageInput
             attachButton={false}
-            placeholder="Type message here"
+            placeholder="Type message here (*Italic*/**Bold**)"
             onSend={handleSend}
           />
         </ChatContainer>
