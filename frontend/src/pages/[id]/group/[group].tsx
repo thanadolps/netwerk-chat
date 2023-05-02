@@ -85,7 +85,6 @@ export default function GroupChat(props: ChatProps) {
 
   // Chat send
   const handleSend = (message: string) => {
-    console.log("CLICKED");
     if (sfxChecked) playSfx();
     send(message);
   };
