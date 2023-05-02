@@ -27,7 +27,7 @@ def connect():
         var.group_name : 'new group',
         var.data : 'create group and send',
         }
-    sio.emit(cmd.create_group, 'new group')
+    sio.emit(cmd.create_group, msg)
     sio.emit(cmd.message, msg)
 
 @sio.event
@@ -61,10 +61,11 @@ def main():
         sl = s.split()
         if 'help' in sl:
             print(HELP)
+        elif s == 'exit':break
         elif sl[0] in ['ls','list']:
             if sl[1]== 'group_name':    r = req.group_name
             if sl[1]== 'user_name':     r = req.user_name
-            # if sl[1]== 'db':            r = req.db
+            if sl[1]== 'db':            r = req.db
             if sl[1]== 'chat_hist':     r = req.chat_hist
             msg = {var.group_name:group,var.data:r}
             sio.emit(cmd.request, msg)
@@ -101,7 +102,7 @@ def main():
         else:
             msg = {var.group_name:group,var.data:s}
             sio.emit(cmd.message, msg)
-    sio.wait()
+    # sio.wait()
 
 HELP = '''
 to join group: join_group <group_name>

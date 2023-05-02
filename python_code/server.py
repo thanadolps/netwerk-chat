@@ -103,7 +103,7 @@ def send_dm(sid, data):
 def request(sid, data):
     if data[var.data] == req.group_name: request = db.groups_name
     if data[var.data] == req.user_name: request = db.users_name
-    if data[var.data] == req.db: request = db
+    if data[var.data] == req.db: request = dict(db)
     if data[var.data] == req.chat_hist: request = db.get_group(data[var.group_name]).message
     msg = gen_server_msg(request)
     msg[var.title] = data[var.data]
@@ -155,7 +155,14 @@ def change_user_name(sid, data):
     if not db.rename_user(sid, new_name):
         send_error(sid,'cant change name (name may dupe)')
         return
-    msg = gen_server_msg(f'change name from {old_name} to {new_name}')
+    msg = {
+            var.sender : var.server_name,
+            var.group_name : var.server_name,
+            var.title : cmd.change_user_name,
+            var.old : old_name,
+            var.new : new_name,
+            var.data : f'change name from {old_name} to {new_name}',
+        }
     send_to_all(msg)
 
 @sio.on(cmd.change_group_name)
@@ -163,11 +170,18 @@ def change_user_name(sid, data):
     if type(data) == str:new_name = data
     else:new_name = data[var.data]
     old_name = data[var.group_name]
-    if not db.rename_group(old_name, new_name):
+    if old_name == var.default_group_name or not db.rename_group(old_name, new_name):
         send_error(sid,'cant change name (name may dupe)')
         return
     user_name = db.users[sid].name
-    msg = gen_server_msg(f'{user_name} change group name from "{old_name}" to "{new_name}"')
+    msg = {
+            var.sender : var.server_name,
+            var.group_name : var.server_name,
+            var.title : cmd.change_group_name,
+            var.old : old_name,
+            var.new : new_name,
+            var.data : f'change name from {old_name} to {new_name}',
+        }
     send_to_all(msg)
 
 

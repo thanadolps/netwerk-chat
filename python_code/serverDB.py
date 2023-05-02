@@ -1,7 +1,10 @@
 
 from Utils import cmd,var
+import json
 
 class DB():
+
+    prohibit_names = [var.dm,var.server_name]
 
     def __init__(self):
         self.groups = dict() #name to chat
@@ -18,7 +21,7 @@ class DB():
     def all_name(self):
         return self.users_name+self.groups_name
     def is_name_exist(self,name):
-        return name in self.all_name
+        return name in self.all_name+DB.prohibit_names
 
     def join_group(self,user_id,group_name):
         if group_name not in self.groups_name:
@@ -72,6 +75,11 @@ class DB():
     def get_group(self,name):
         return self.groups[name]
         
+    def keys(self):
+        return self.all_name
+    def __getitem__(self,key):
+        return dict(self.get_group(key) if key in self.groups_name else self.get_user_by_name(key))
+
 
 def is_name_dupe(name,list_of_object_with_name_attribute):
     for i in list_of_object_with_name_attribute:
@@ -90,6 +98,11 @@ class User:
 
     def remove(self,u):
         self.groups.remove(u)
+
+    def keys(self):
+        return ['id','name','groups']
+    def __getitem__(self,key):
+        return {'id':self.id,'name':self.name,'groups':[group.name for group in self.groups]}[key]
 
 class Chat:
     def __init__(self,name):
@@ -110,6 +123,11 @@ class Chat:
 
     def add_msg(self,msg):
         self.message . append(msg)
+        
+    def keys(self):
+        return ['name','members','message']
+    def __getitem__(self,key):
+        return {'name':self.name,'members':self.members_id,'message':self.message}[key]
     
 
     

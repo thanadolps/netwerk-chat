@@ -23,6 +23,8 @@ class var():
     server_name = 'server'
     default_group_name = 'default'
     title = 'title'
+    old = 'old'
+    new = 'new'
 
 class req():
     group_name = 'group_name'
