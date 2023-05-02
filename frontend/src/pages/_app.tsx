@@ -32,14 +32,9 @@ const themeList = [whiteTheme, darkTheme];
 
 function App({ Component, pageProps }: AppProps) {
   const [theme, setTheme] = useState(0);
-  const [sfx, setSfx] = useState("ting");
 
   const cycleTheme = () => {
     setTheme((theme + 1) % themeList.length);
-  };
-
-  const handleChange = (event: SelectChangeEvent) => {
-    setSfx(event.target.value as string);
   };
 
   return (
