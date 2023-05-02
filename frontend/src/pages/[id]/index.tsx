@@ -140,12 +140,14 @@ const MainPage: Function = (props: MainPageProps) => {
             })) ?? []
         }
         groupCards={[
-          ...(groups?.map((group) => ({
-            title: group,
-            action() {
-              router.push(`/${id}/group/${group}`);
-            },
-          })) ?? []),
+          ...(groups
+            ?.filter((g) => g.toLowerCase() !== "demo")
+            .map((group) => ({
+              title: group,
+              action() {
+                router.push(`/${id}/group/${group}`);
+              },
+            })) ?? []),
           {
             title: "Create Group",
             action() {
