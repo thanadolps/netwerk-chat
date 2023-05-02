@@ -86,7 +86,7 @@ export default function DMChat(props: ChatProps) {
           </MessageList>
           <MessageInput
             attachButton={false}
-            placeholder="Type message here"
+            placeholder="Type message here (*Italic*/**Bold**)"
             onSend={handleSend}
           />
         </ChatContainer>
