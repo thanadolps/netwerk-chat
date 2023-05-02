@@ -42,14 +42,9 @@ const ChatDemo: Function = (props: ChatProps) => {
             </ConversationHeader.Actions>
           </ConversationHeader>
           <MessageList>
-            <Message
-              model={{
-                message: "Hello my friend",
-                sentTime: "just now",
-                sender: "Joe",
-              }}
-            >
+            <Message>
               <Message.Header sender="Joe" />
+              Hello
             </Message>
           </MessageList>
           <MessageInput attachButton={false} placeholder="Type message here" />

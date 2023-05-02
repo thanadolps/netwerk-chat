@@ -75,7 +75,7 @@ export default function GroupChat(props: ChatProps) {
           <MessageList>
             {models.map((model, i) => (
               <Message key={i} model={model}>
-                <Message.Header sender="Joe" />
+                <Message.Header sender={model.sender} />
               </Message>
             ))}
           </MessageList>

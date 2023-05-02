@@ -77,9 +77,7 @@ export default function DMChat(props: ChatProps) {
           </ConversationHeader>
           <MessageList>
             {models.map((model, i) => (
-              <Message key={i} model={model}>
-                <Message.Header sender="Joe" />
-              </Message>
+              <Message key={i} model={model}></Message>
             ))}
           </MessageList>
           <MessageInput
