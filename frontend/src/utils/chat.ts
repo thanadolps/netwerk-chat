@@ -208,8 +208,8 @@ export function useChat(
   };
 
   const actions = {
-    send: (msg: string) => {
-      if (groupName) send(groupName, msg);
+    send: async (msg: string) => {
+      if (groupName) await send(groupName, msg);
     },
   };
 

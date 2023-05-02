@@ -17,6 +17,7 @@ import { useRouter } from "next/router";
 import { useEffect } from "react";
 import { toast } from "react-toastify";
 import * as chat from "../../../utils/chat";
+import { ReactMarkdown } from "react-markdown/lib/react-markdown";
 
 type ChatProps = {
   cycleTheme: any;
@@ -50,7 +51,7 @@ export default function DMChat(props: ChatProps) {
 
   // Chat send
   const handleSend = (message: string) => {
-    send(message).catch((err) => {
+    send(message.trim()).catch((err) => {
       toast.error(err);
     });
   };
@@ -74,7 +75,13 @@ export default function DMChat(props: ChatProps) {
           </ConversationHeader>
           <MessageList>
             {models.map((model, i) => (
-              <Message key={i} model={model}></Message>
+              <Message key={i} model={model}>
+                <Message.CustomContent>
+                  <ReactMarkdown>
+                    {model.message?.replaceAll("<br>", "\n") ?? ""}
+                  </ReactMarkdown>
+                </Message.CustomContent>
+              </Message>
             ))}
           </MessageList>
           <MessageInput

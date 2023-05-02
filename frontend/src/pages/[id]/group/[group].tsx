@@ -14,9 +14,10 @@ import ColorLensIcon from "@mui/icons-material/ColorLens";
 import { useTheme } from "@mui/material";
 import { useRouter } from "next/router";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import * as chat from "../../../utils/chat";
+import { ReactMarkdown } from "react-markdown/lib/react-markdown";
 
 type ChatProps = {
   cycleTheme: any;
@@ -49,7 +50,9 @@ export default function GroupChat(props: ChatProps) {
 
   // Chat send
   const handleSend = (message: string) => {
-    send(message);
+    send(message.trim()).catch((err) => {
+      toast.error(err);
+    });
   };
 
   return (
@@ -73,6 +76,11 @@ export default function GroupChat(props: ChatProps) {
             {models.map((model, i) => (
               <Message key={i} model={model}>
                 <Message.Header sender={model.sender} />
+                <Message.CustomContent>
+                  <ReactMarkdown>
+                    {model.message?.replaceAll("<br>", "\n") ?? ""}
+                  </ReactMarkdown>
+                </Message.CustomContent>
               </Message>
             ))}
           </MessageList>
