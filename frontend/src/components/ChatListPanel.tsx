@@ -5,6 +5,9 @@ import Typography from "@mui/material/Typography";
 import Box from "@mui/material/Box";
 import Grid from "@mui/material/Unstable_Grid2";
 import { Button, Paper, styled } from "@mui/material";
+import { Padding, Refresh } from "@mui/icons-material";
+import AddIcon from "@mui/icons-material/Add";
+import { green } from "@mui/material/colors";
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -65,7 +68,7 @@ export default function BasicTabs(props: BasicTabsProps) {
   };
 
   return (
-    <Box sx={{ width: "100%" }}>
+    <Box sx={{ width: "100%", marginTop: "1rem" }}>
       <Box sx={{ borderBottom: 1, borderColor: "divider" }}>
         <Tabs
           value={value}
@@ -85,8 +88,13 @@ export default function BasicTabs(props: BasicTabsProps) {
           >
             {props.chatCards.map(({ title, action }, index) => (
               <Grid xs={2} sm={4} md={4} key={index}>
-                <Item>
-                  <Button onClick={action}>{title}</Button>
+                <Item sx={{ padding: "0", margin: "1rem" }}>
+                  <Button
+                    onClick={action}
+                    sx={{ padding: "1.5rem", width: "100%" }}
+                  >
+                    {title}
+                  </Button>
                 </Item>
               </Grid>
             ))}
@@ -102,8 +110,18 @@ export default function BasicTabs(props: BasicTabsProps) {
           >
             {props.groupCards.map(({ title, action }, index) => (
               <Grid xs={2} sm={4} md={4} key={index}>
-                <Item>
-                  <Button onClick={action}>{title}</Button>
+                <Item sx={{ padding: "0", margin: "1rem" }}>
+                  <Button
+                    onClick={action}
+                    sx={{
+                      padding: "1.5rem",
+                      width: "100%",
+                      justifyItems: "center",
+                    }}
+                  >
+                    {title}
+                    {title == "Create Group" ? <AddIcon /> : ""}
+                  </Button>
                 </Item>
               </Grid>
             ))}
