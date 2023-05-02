@@ -76,6 +76,9 @@ dependencies:
   typescript:
     specifier: 5.0.4
     version: 5.0.4
+  uwuifier:
+    specifier: ^4.0.5
+    version: 4.0.5
 
 packages:
 
@@ -3835,6 +3838,10 @@ packages:
       diff: 5.1.0
       kleur: 4.1.5
       sade: 1.8.1
+    dev: false
+
+  /uwuifier@4.0.5:
+    resolution: {integrity: sha512-aY94c/5dRXEpJb12H/8DeLbCFfkIjqkLLJz0Ogj46WXsVkvq+CYUmCxs3S4sJGtb78cI8x/PQN6ZXe4QApcIYw==}
     dev: false
 
   /vfile-message@3.1.4:

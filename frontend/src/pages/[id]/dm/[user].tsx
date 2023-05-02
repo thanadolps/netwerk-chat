@@ -19,6 +19,7 @@ import { toast } from "react-toastify";
 import * as chat from "../../../utils/chat";
 import { ReactMarkdown } from "react-markdown/lib/react-markdown";
 import remarkGfm from "remark-gfm";
+import { toUwuOrNotUwu } from "@/utils/uwu";
 
 type ChatProps = {
   cycleTheme: any;
@@ -51,8 +52,9 @@ export default function DMChat(props: ChatProps) {
   }));
 
   // Chat send
+  const uwu = toUwuOrNotUwu(0.1);
   const handleSend = (message: string) => {
-    send(message.trim()).catch((err) => {
+    send(uwu(message.trim(), () => toast.success("uwu"))).catch((err) => {
       toast.error(err);
     });
   };
