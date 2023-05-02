@@ -36,12 +36,8 @@ const ChatDemo: Function = (props: ChatProps) => {
             />
             <ConversationHeader.Content userName={"Joe"} />
             <ConversationHeader.Actions>
-              <Button
-                variant="outlined"
-                onClick={props.cycleTheme}
-                endIcon={<ColorLensIcon />}
-              >
-                Change Theme
+              <Button variant="outlined" onClick={props.cycleTheme}>
+                Change Theme <ColorLensIcon />
               </Button>
             </ConversationHeader.Actions>
           </ConversationHeader>
