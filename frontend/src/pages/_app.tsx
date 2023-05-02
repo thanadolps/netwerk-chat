@@ -11,6 +11,7 @@ import { ThemeProvider, createTheme } from "@mui/material/styles";
 import CssBaseline from "@mui/material/CssBaseline";
 import { useState } from "react";
 import dynamic from "next/dynamic";
+import { SelectChangeEvent } from "@mui/material";
 
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -31,8 +32,14 @@ const themeList = [whiteTheme, darkTheme];
 
 function App({ Component, pageProps }: AppProps) {
   const [theme, setTheme] = useState(0);
+  const [sfx, setSfx] = useState("ting");
+
   const cycleTheme = () => {
     setTheme((theme + 1) % themeList.length);
+  };
+
+  const handleChange = (event: SelectChangeEvent) => {
+    setSfx(event.target.value as string);
   };
 
   return (
