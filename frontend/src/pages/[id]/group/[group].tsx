@@ -9,18 +9,20 @@ import {
   MessageModel,
 } from "@chatscope/chat-ui-kit-react";
 import styles from "@chatscope/chat-ui-kit-styles/dist/default/styles.min.css";
-import { Button as MButton } from "@mui/material";
+import {
+  FormControlLabel,
+  FormGroup,
+  Button as MButton,
+  Select as MSelect,
+  Switch as MSwitch,
+} from "@mui/material";
 import ColorLensIcon from "@mui/icons-material/ColorLens";
 import { useTheme } from "@mui/material";
 import { useRouter } from "next/router";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { toast } from "react-toastify";
 import * as chat from "../../../utils/chat";
-import { ReactMarkdown } from "react-markdown/lib/react-markdown";
-
-import remarkGfm from "remark-gfm";
-import { toUwuOrNotUwu } from "@/utils/uwu";
 
 type ChatProps = {
   cycleTheme: any;
@@ -28,8 +30,8 @@ type ChatProps = {
 
 export default function GroupChat(props: ChatProps) {
   const router = useRouter();
-  const id = router.query["id"] as string | undefined;
-  const group = router.query["group"] as string | undefined;
+  const id = router.query["id"] as string;
+  const group = router.query["group"] as string;
 
   // Theme
   const theme = useTheme();
@@ -39,7 +41,7 @@ export default function GroupChat(props: ChatProps) {
   const [{ chats, error }, { send }] = chat.useChat(group ?? null);
   useEffect(() => {
     if (error) {
-      toast.error(JSON.stringify(error));
+      toast.error(error.data);
     }
   }, [error]);
 
@@ -51,12 +53,40 @@ export default function GroupChat(props: ChatProps) {
     position: "single",
   }));
 
+  // SFX Button
+  const [sfxChecked, setSfxChecked] = useState(false);
+  const sfxHandleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setSfxChecked(event.target.checked);
+  };
+  const label = { inputProps: { "aria-label": "Switch demo" } };
+
+  // SFX
+  const sfxLimit = 10;
+  const sfx = "ting";
+  const audio = useMemo(() => {
+    let tingArr = [];
+    for (let i = 0; i < sfxLimit - 1; i++) {
+      tingArr.push(new Audio("/ting.mp3"));
+    }
+    tingArr.push(new Audio("/kanye.mp3"));
+    return {
+      ting: tingArr,
+      kanye: new Audio("/kanye.mp3"),
+    };
+  }, []);
+
+  const [sidx, setSidx] = useState(0);
+
+  function playSfx() {
+    audio[sfx][sidx].play();
+    setSidx((sidx + 1) % sfxLimit);
+    console.log(sidx);
+  }
+
   // Chat send
-  const uwu = toUwuOrNotUwu(0.1);
   const handleSend = (message: string) => {
-    send(uwu(message.trim(), () => toast.success("uwu"))).catch((err) => {
-      toast.error(err);
-    });
+    if (sfxChecked) playSfx();
+    send(message);
   };
 
   return (
@@ -71,6 +101,18 @@ export default function GroupChat(props: ChatProps) {
             />
             <ConversationHeader.Content userName={group} />
             <ConversationHeader.Actions>
+              <FormGroup>
+                <FormControlLabel
+                  control={
+                    <MSwitch
+                      checked={sfxChecked}
+                      onChange={sfxHandleChange}
+                      inputProps={{ "aria-label": "controlled" }}
+                    />
+                  }
+                  label="SFX"
+                />
+              </FormGroup>
               <MButton variant="outlined" onClick={props.cycleTheme}>
                 Change Theme <ColorLensIcon />
               </MButton>
@@ -80,11 +122,6 @@ export default function GroupChat(props: ChatProps) {
             {models.map((model, i) => (
               <Message key={i} model={model}>
                 <Message.Header sender={model.sender} />
-                <Message.CustomContent>
-                  <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                    {model.message?.replaceAll("<br>", "\n") ?? ""}
-                  </ReactMarkdown>
-                </Message.CustomContent>
               </Message>
             ))}
           </MessageList>
